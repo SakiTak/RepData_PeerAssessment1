@@ -6,13 +6,11 @@ output: html_document
 library(dplyr)
 library(ggplot2)
 
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.path='Figs/',
-                      echo=TRUE, warning=FALSE, message=FALSE)
-```
+
 
 ##Loading and preprocessing of data##
-```{r load}
+
+```r
     if(!file.exists("activity.csv")) {
     fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip?accessType                =DOWNLOAD"
     download.file(fileUrl, destfile = "repdata-data-activity.zip", method = "curl")
@@ -26,7 +24,8 @@ knitr::opts_chunk$set(fig.path='Figs/',
 ##What is mean total number of steps taken per day?##
 
 **1. Calculate the total number of steps taken per day**
-```{r sum}
+
+```r
 library(dplyr)
 dfsum <- summarize(group_by(df1, date), sum(steps))
 names(dfsum) <- c("date", "steps")
@@ -34,45 +33,62 @@ names(dfsum) <- c("date", "steps")
 
 
 **2. Make a histogram of the total number of steps taken each day**
-```{r hist1}
+
+```r
     hist(dfsum$steps, xlab = "Total number of steps", col = 'Red',   
          main = "Total number of steps taken each day")
 ```
+
+![plot of chunk hist1](Figs/hist1-1.png) 
 [id]: figures/plot1.png "Histogram" 
 
 
 **3. Calculate and report the mean and median of the total number of steps taken per day**
-```{r mean}
+
+```r
     library(dplyr)
     dfsum%>%dplyr::summarise(Mean=mean(steps), Median=median(steps))%>%
     print
 ```
 
+```
+## Source: local data frame [1 x 2]
+## 
+##       Mean Median
+## 1 10766.19  10765
+```
+
 ##What is the average daily activity pattern?##
-```{r avg}
+
+```r
     dfavg <- dplyr::summarize(group_by(df1, interval), mean(steps))
     names(dfavg) <- c("interval", "steps")
 ```
 
 **1. Time series plot of the 5-minute interval and the average number of steps taken, 
    averaged across all days**
-```{r plot1}   
+
+```r
     plot(dfavg$interval, dfavg$steps, xlab = "Interval", ylab = "Steps", type = "l",
          main = "Average number of Steps/ Averaged across all Days")
 ```
 
+![plot of chunk plot1](Figs/plot1-1.png) 
+
 **2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
-```{r max}
+
+```r
     num <- dfavg[dfavg$steps %in% max(dfavg$steps),]
 ```
-###The 5 minute interval with the maximum number of steps is `r num$interval`###         
+###The 5 minute interval with the maximum number of steps is 835###         
 
 
 ##Imputing missing values##
 
 **1. Calculate and report the total number of missing values in the dataset**
 
-```{r miss}
+
+```r
     miss <- length(which(is.na(df$steps)))
 
 #2.  Devise a strategy for filling in all of the missing values in the dataset. 
@@ -83,21 +99,32 @@ names(dfsum) <- c("date", "steps")
 #   in
     dfnewsum <- dplyr::summarize(group_by(dfnew, date), sum(steps))
     names(dfnewsum) <- c("date", "steps")
-```   
+```
 
 
 **4a. Make a histogram of the total number of steps taken each day (with imputed NA values)**
-```{r hist2}
+
+```r
     hist(dfnewsum$steps, xlab = "Total number of steps (NA values filled in)", col = 'Blue',   
          main = "Total number of steps taken each day (NAs filled in)")
 ```
 
+![plot of chunk hist2](Figs/hist2-1.png) 
+
 
 **4b. Calculate and report the mean and median of the total number of steps taken per day after imputing NAs**
-```{r withNA}
+
+```r
     dfnewsum%>%
         dplyr::summarise(Mean=mean(steps), Median=median(steps))%>%
         print
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##      Mean Median
+## 1 9354.23  10395
 ```
 ###The Mean and Median values are slightly lower (than in the first part) after computation including imputed missing values###
 
@@ -106,7 +133,8 @@ names(dfsum) <- c("date", "steps")
 **1. Create a new factor variable in the dataset with two levels – 
 “weekday” and “weekend” indicating whether a given date is a weekday or weekend day**
 
-```{r fact}
+
+```r
     dfnew$days <- factor(weekdays(as.Date(dfnew$date)))
     l1 <- ifelse(dfnew$days=="Monday" | dfnew$days=="Tuesday" | dfnew$days=="Wednesday" |
                   dfnew$days== "Thursday" | dfnew$days== "Friday", "Weekday", 
@@ -117,12 +145,14 @@ names(dfsum) <- c("date", "steps")
      names(dffin) <- c("interval", "day", "steps")     
 ```
 **2. Panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days**
-```{r ggp}
+
+```r
     library(ggplot2)
     ggplot(dffin, aes(x = interval, y = steps, color=factor(day))) +
         geom_line() +  xlab('Interval') + ylab('Number of steps') +
         facet_grid(day~.) + scale_color_manual(values=c("red", "blue")) +
         labs(title = 'Average Steps on all Week Days or Weekend Days ')
-         
 ```
+
+![plot of chunk ggp](Figs/ggp-1.png) 
 
